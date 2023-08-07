@@ -10,7 +10,7 @@ const routes = [
         name: HOME,
         component: () => import('pages/IndexPage.vue'),
         meta: {
-          title: 'Home'
+          title: 'Работа'
         }
 
       },

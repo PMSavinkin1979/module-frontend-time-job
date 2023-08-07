@@ -10,7 +10,7 @@ import BaseLayout from 'module-frontend-base/src/layouts/BaseLayout.vue'
 
 const linksList = [
   {
-    title: 'Главная',
+    title: 'Работа',
     icon: 'mdi-home',
     exact: true,
     to: {name: HOME},
