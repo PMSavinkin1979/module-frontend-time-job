@@ -13,23 +13,42 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
+import {useUserStore} from "module-frontend-base"
+import {mapStores} from "pinia";
+import {api} from "boot/axios";
 
 const columnsOnTheSide = [
-  { name: 'id', align: 'center', label: 'id', field: 'id', sortable: true },
-  { name: 'user_modules', align: 'center', label: 'user_modules', field: 'user_modules', sortable: true },
-  { name: 'name', align: 'center', label: 'name', field: 'name', sortable: true },
-  { name: 'email', align: 'center', label: 'email', field: 'email', sortable: true },
-  { name: 'access_outside', align: 'center', label: 'access', field: 'access_outside', sortable: true },
+  { name: 'date_otk', align: 'center', label: 'Дата готовности', field: 'date_otk', sortable: true },
+  { name: 'area_gird', align: 'center', label: 'Площадка ГИРД', field: 'area_gird', sortable: true },
+  { name: 'area_on_the_side', align: 'center', label: 'Площадка доработчика', field: 'area_on_the_side', sortable: true },
+  { name: 'note', align: 'center', label: 'Примечание', field: 'note', sortable: true },
+  { name: 'type_work', align: 'center', label: 'Тип работ', field: 'type_work', sortable: true },
 ]
 
 export default defineComponent({
   name: 'IndexPage',
   setup() {
     let rows = ref([])
+    let who = ref('')
+
+    function getAllDataReworker(who) {
+      api.post('getAllDataReworker', {data: who}).then(respond => {
+
+      })
+    }
 
     return {
-      columnsOnTheSide, rows,
+      columnsOnTheSide, rows, getAllDataReworker, who,
     }
-  }
+  },
+  computed: {
+    ...mapStores(useUserStore)
+  },
+  created() {
+    this.who = this.userStore.user//hasPermission('order.act')
+    this.getAllDataReworker(this.who)
+    //this.getAllDataReworker
+    //console.log(this.who)
+  },
 })
 </script>
