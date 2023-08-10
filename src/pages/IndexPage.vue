@@ -7,7 +7,20 @@
       :rows="rows"
       :columns="columnsOnTheSide"
       row-key="id"
-    />
+    >
+      <template #body-cell-area_gird="props">
+        <q-td align="center">
+          <q-icon v-if="props.row.area_gird" size="1.5rem" color="green" name="mdi-check-bold"/>
+        </q-td>
+      </template>
+
+      <template #body-cell-area_on_the_side="props">
+        <q-td align="center">
+          <q-icon v-if="props.row.area_on_the_side" size="1.5rem" color="green" name="mdi-check-bold"/>
+        </q-td>
+      </template>
+
+    </q-table>
   </div>
 </template>
 
@@ -18,7 +31,12 @@ import {mapStores} from "pinia";
 import {api} from "boot/axios";
 
 const columnsOnTheSide = [
-  { name: 'date_otk', align: 'center', label: 'Дата готовности', field: 'date_otk', sortable: true },
+  { name: 'reworker_name', align: 'center', label: 'Доработчик', field: 'reworker_name', sortable: true },
+  { name: 'id', align: 'center', label: '№', field: 'id', sortable: true },
+  { name: 'order_name', align: 'center', label: 'Приказ ГИРД', field: 'order_name', sortable: true },
+  { name: 'date_otk', align: 'center', label: 'Дата сдачи ГИРД', field: 'date_otk', sortable: true },
+  { name: 'on_the_side', align: 'center', label: 'В работе доработчика с', field: 'on_the_side', sortable: true },
+  { name: 'done_on_the_side', align: 'center', label: 'Готовность доработки', field: 'done_on_the_side', sortable: true },
   { name: 'area_gird', align: 'center', label: 'Площадка ГИРД', field: 'area_gird', sortable: true },
   { name: 'area_on_the_side', align: 'center', label: 'Площадка доработчика', field: 'area_on_the_side', sortable: true },
   { name: 'note', align: 'center', label: 'Примечание', field: 'note', sortable: true },
@@ -33,7 +51,7 @@ export default defineComponent({
 
     function getAllDataReworker(who) {
       api.post('getAllDataReworker', {data: who}).then(respond => {
-
+        rows.value = respond.data
       })
     }
 
