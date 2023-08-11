@@ -1,4 +1,14 @@
 <template>
+
+  <div class="row q-pa-md">
+    <div class="col-2">
+      <q-toggle v-model="viewTable" :label="uploadStatusLabel" color="green"/>
+    </div>
+    <div class="col-2">
+      <q-btn color="green-10" dense outline label="Выгрузить в Excel" size="0.8rem"></q-btn>
+    </div>
+  </div>
+
   <div class="q-pa-md">
     <q-table
       flat bordered
@@ -10,13 +20,19 @@
     >
       <template #body-cell-area_gird="props">
         <q-td align="center">
-          <q-icon v-if="props.row.area_gird" size="1.5rem" color="green" name="mdi-check-bold"/>
+          <q-icon v-if="props.row.area_gird" size="1.2rem" color="green" name="mdi-check-bold"/>
+        </q-td>
+      </template>
+
+      <template #body-cell-view_icon="props">
+        <q-td align="center">
+          <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>
         </q-td>
       </template>
 
       <template #body-cell-area_on_the_side="props">
         <q-td align="center">
-          <q-icon v-if="props.row.area_on_the_side" size="1.5rem" color="green" name="mdi-check-bold"/>
+          <q-icon v-if="props.row.area_on_the_side" size="1.2rem" color="green" name="mdi-check-bold"/>
         </q-td>
       </template>
 
@@ -31,6 +47,7 @@ import {mapStores} from "pinia";
 import {api} from "boot/axios";
 
 const columnsOnTheSide = [
+  { name: 'view_icon', align: 'center', label: '', field: 'view_icon', sortable: true },
   { name: 'reworker_name', align: 'center', label: 'Доработчик', field: 'reworker_name', sortable: true },
   { name: 'id', align: 'center', label: '№', field: 'id', sortable: true },
   { name: 'order_name', align: 'center', label: 'Приказ ГИРД', field: 'order_name', sortable: true },
@@ -48,15 +65,27 @@ export default defineComponent({
   setup() {
     let rows = ref([])
     let who = ref('')
+    let viewTable = ref(false)
+    let uploadStatusLabel = ref('все заявки')
 
-    function getAllDataReworker(who) {
-      api.post('getAllDataReworker', {data: who}).then(respond => {
+    function getAllDataReworker() {
+      api.post('getAllDataReworker', {data: who.value, view_table: viewTable.value}).then(respond => {
         rows.value = respond.data
       })
     }
 
     return {
-      columnsOnTheSide, rows, getAllDataReworker, who,
+      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel,
+    }
+  },
+  watch: {
+    viewTable() {
+      if (this.viewTable) {
+        this.uploadStatusLabel = 'только заявки в работе'
+      } else {
+        this.uploadStatusLabel = 'все заявки'
+      }
+      this.getAllDataReworker()
     }
   },
   computed: {
