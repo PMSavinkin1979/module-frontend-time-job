@@ -36,7 +36,39 @@
         </q-td>
       </template>
 
+      <template #body-cell-note="props">
+        <q-td align="center">
+<!--          <span>{{ props.row.note.substring(0,10) }}...</span>-->
+          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.note) && props.row.note!==null" @click="viewText(props.row.note)">{{ props.row.note.substring(0,10) }}...</span>
+          <span v-else>{{ props.row.note }}</span>
+        </q-td>
+      </template>
+
+      <template #body-cell-type_work="props">
+        <q-td align="center">
+          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.type_work) && props.row.type_work!==null" @click="viewText(props.row.type_work)">{{ props.row.type_work.substring(0,10) }}...</span>
+          <span v-else>{{ props.row.type_work }}</span>
+        </q-td>
+      </template>
+
     </q-table>
+
+<!--    Диалоговое окно для просмотра большого текста-->
+    <q-dialog v-model="dialogViewText">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Alert</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <span>{{ viewTextInDialog }}</span>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -65,8 +97,10 @@ export default defineComponent({
   setup() {
     let rows = ref([])
     let who = ref('')
-    let viewTable = ref(false)
-    let uploadStatusLabel = ref('все заявки')
+    let viewTable = ref(true)
+    let uploadStatusLabel = ref('только заявки в работе')
+    let dialogViewText = ref(false)
+    let viewTextInDialog = ref('')
 
     function getAllDataReworker() {
       api.post('getAllDataReworker', {data: who.value, view_table: viewTable.value}).then(respond => {
@@ -74,8 +108,21 @@ export default defineComponent({
       })
     }
 
+    function checkText(text) {
+      if (text!==null) {
+        if (text.length>10) {
+          return true
+        }
+      }
+    }
+
+    function viewText(text) {
+      viewTextInDialog.value = text
+      dialogViewText.value = true
+    }
+
     return {
-      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel,
+      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog
     }
   },
   watch: {
