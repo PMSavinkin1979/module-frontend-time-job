@@ -5,7 +5,9 @@
       <q-toggle v-model="viewTable" :label="uploadStatusLabel" color="green"/>
     </div>
     <div class="col-2">
-      <q-btn color="green-10" dense outline label="Выгрузить в Excel" size="0.8rem"></q-btn>
+      <q-btn color="green-10" dense outline size="0.8rem">
+        <a style="font-size: x-small" :href="printOnTheSide()" target="_blank">Выгрузить в Excel</a>
+      </q-btn>
     </div>
   </div>
 
@@ -121,8 +123,12 @@ export default defineComponent({
       dialogViewText.value = true
     }
 
+    function printOnTheSide() {
+      return '/printOnTheSide'
+    }
+
     return {
-      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog
+      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide
     }
   },
   watch: {
