@@ -5,7 +5,7 @@
       <q-toggle v-model="viewTable" :label="uploadStatusLabel" color="green"/>
     </div>
     <div class="col-2">
-      <q-btn color="green-10" dense outline size="0.8rem">
+      <q-btn disable color="green-10" dense outline size="0.8rem">
         <a style="font-size: x-small" :href="printOnTheSide()" target="_blank">Выгрузить в Excel</a>
       </q-btn>
     </div>
@@ -13,12 +13,15 @@
 
   <div class="q-pa-md">
     <q-table
+      class="my-sticky-header-table"
       flat bordered
       title="Планируемые работы"
       dense
       :rows="rows"
       :columns="columnsOnTheSide"
       row-key="id"
+      hide-pagination
+      :rows-per-page-options="[0]"
     >
       <template #body-cell-area_gird="props">
         <q-td align="center">
@@ -29,6 +32,9 @@
       <template #body-cell-view_icon="props">
         <q-td align="center">
           <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>
+
+          <q-icon v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus-outline"/>
+          <q-icon v-if="commentStatus(props.row)===false" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus"/>
         </q-td>
       </template>
 
@@ -59,7 +65,7 @@
     <q-dialog v-model="dialogViewText">
       <q-card>
         <q-card-section>
-          <div class="text-h6">Alert</div>
+          <div class="text-h6"></div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
@@ -124,11 +130,30 @@ export default defineComponent({
     }
 
     function printOnTheSide() {
-      return '/printOnTheSide'
+      return '/printOnTheSide?reworker_id=' + who.value.id + '&view_table=' + viewTable.value
+    }
+
+    function openComment(row) {
+      console.log(row)
+    }
+
+    function commentStatus(row) {
+      let comments = row['comments_on_the_side']
+      if (comments.length>0) {
+        let result = comments.filter(com => com['status']===0 && com['whose_comment']==='ГИРД')
+        if (result.length>0) {
+          return false
+        } else {
+          return true
+        }
+      } else {
+        return true
+      }
     }
 
     return {
-      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide
+      columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
+      commentStatus,
     }
   },
   watch: {
@@ -152,3 +177,31 @@ export default defineComponent({
   },
 })
 </script>
+
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+  height: calc(100vh - 170px)
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: papayawhip
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
+</style>
