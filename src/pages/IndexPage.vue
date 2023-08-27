@@ -15,7 +15,7 @@
     <q-table
       class="my-sticky-header-table"
       flat bordered
-      title="Планируемые работы"
+      title="Планируемые работы!!!"
       dense
       :rows="rows"
       :columns="columnsOnTheSide"
@@ -77,7 +77,49 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+<!--    Диалоговое окно для соощений-->
+    <q-dialog v-model="dialogMessage">
+      <q-card style="min-width: 700px">
+        <q-card-section>
+          <div class="text-h6">Сообщения</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <div class="q-pa-md row justify-center">
+            <div style="width: 100%; max-width: 600px;">
+<!--              <q-chat-message label="Sunday, 19th"/>-->
+              <div v-for="mes in messages" :key="mes['id']">
+                <q-chat-message v-if="mes.whose_comment==='ГИРД'" :name="mes.whose_comment" avatar="https://cdn.quasar.dev/img/avatar3.jpg"
+                                :text="[mes.comment]"
+                                :stamp="timeMessage(mes.created_at)"
+                                sent
+                />
+                <q-chat-message v-else :name="mes.whose_comment" avatar="https://cdn.quasar.dev/img/avatar3.jpg"
+                                :text="[mes.comment]"
+                                :stamp="timeMessage(mes.created_at)"
+                />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+<!--        <q-card-actions>-->
+          <div class="row q-pa-md">
+            <div class="col-9">
+              <q-input filled autogrow dense outlined label="Соощение" v-model="newMessage"/>
+            </div>
+            <div class="col-1">
+            </div>
+            <div class="col-2">
+              <q-btn dense flat label="Отправить" color="primary" @click="saveNewMessage(newMessage)"/>
+            </div>
+          </div>
+<!--        </q-card-actions>-->
+      </q-card>
+    </q-dialog>
   </div>
+
 </template>
 
 <script>
@@ -85,6 +127,7 @@ import { defineComponent, ref } from 'vue'
 import {useUserStore} from "module-frontend-base"
 import {mapStores} from "pinia";
 import {api} from "boot/axios";
+import {QSpinnerClock, useQuasar} from "quasar";
 
 const columnsOnTheSide = [
   { name: 'view_icon', align: 'center', label: '', field: 'view_icon', sortable: true },
@@ -108,11 +151,27 @@ export default defineComponent({
     let viewTable = ref(true)
     let uploadStatusLabel = ref('только заявки в работе')
     let dialogViewText = ref(false)
+    let dialogMessage = ref(false)
     let viewTextInDialog = ref('')
+    const $q = useQuasar()
+    let newMessage = ref('')
+    let messages = ref([])
+    let message = ref([])
+
+    let options = {
+      spinner: QSpinnerClock,
+      spinnerColor: 'blue',
+      spinnerSize: 70,
+      /*backgroundColor: 'purple',*/
+      message: 'Загрузка',
+      messageColor: 'white'
+    }
 
     function getAllDataReworker() {
+      $q.loading.show(options)
       api.post('getAllDataReworker', {data: who.value, view_table: viewTable.value}).then(respond => {
         rows.value = respond.data
+        $q.loading.hide()
       })
     }
 
@@ -134,7 +193,31 @@ export default defineComponent({
     }
 
     function openComment(row) {
-      console.log(row)
+      message.value = row
+      api.post('loadComments',{on_the_side_id: row['id']}).then(respond => {
+        messages.value = respond.data
+      })
+
+      dialogMessage.value = true
+    }
+
+    function saveNewMessage(newMessage) {
+      //console.log(message.value.id)
+      api.post('saveNewMessage',{message: newMessage, on_the_side_id: message.value.id, who: who.value}).then(respond => {
+        api.post('loadComments',{on_the_side_id: message.value.id}).then(respond => {
+          messages.value = respond.data
+          newMessage.value = ''
+        })
+      })
+    }
+
+    function timeMessage(dateTime) {
+      let da = new Date(dateTime)
+      let result = ''
+      let month = da.getMonth()
+      if (month<10) month = '0'+da.getMonth()
+      result = da.getFullYear()+'-'+month+'-'+da.getDate()
+      return result
     }
 
     function commentStatus(row) {
@@ -153,7 +236,7 @@ export default defineComponent({
 
     return {
       columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
-      commentStatus,
+      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message
     }
   },
   watch: {
