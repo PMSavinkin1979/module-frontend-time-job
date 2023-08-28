@@ -80,22 +80,22 @@
 
 <!--    Диалоговое окно для соощений-->
     <q-dialog v-model="dialogMessage">
-      <q-card style="min-width: 700px">
+      <q-card style="min-width: 700px" >
         <q-card-section>
           <div class="text-h6">Сообщения</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section style="max-height: 60vh; background: wheat" class="scroll">
           <div class="q-pa-md row justify-center">
             <div style="width: 100%; max-width: 600px;">
 <!--              <q-chat-message label="Sunday, 19th"/>-->
               <div v-for="mes in messages" :key="mes['id']">
-                <q-chat-message v-if="mes.whose_comment==='ГИРД'" :name="mes.whose_comment" avatar="https://cdn.quasar.dev/img/avatar3.jpg"
+                <q-chat-message v-if="mes.whose_comment==='ГИРД'" :name="mes.whose_comment"
                                 :text="[mes.comment]"
                                 :stamp="timeMessage(mes.created_at)"
                                 sent
                 />
-                <q-chat-message v-else :name="mes.whose_comment" avatar="https://cdn.quasar.dev/img/avatar3.jpg"
+                <q-chat-message v-else :name="mes.whose_comment"
                                 :text="[mes.comment]"
                                 :stamp="timeMessage(mes.created_at)"
                 />
