@@ -32,9 +32,10 @@
       <template #body-cell-view_icon="props">
         <q-td align="center">
           <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>
-
-          <q-icon v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus-outline"/>
-          <q-icon v-if="commentStatus(props.row)===false" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus"/>
+          <!--          нет сообщения-->
+          <q-icon class="plusIcon" v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus-outline"/>
+          <!--          есть сообщения-->
+          <q-icon class="plusIcon" v-if="commentStatus(props.row)===false" @click="openComment(props.row)" size="1.2rem" color="blue-6" name="mdi-comment-plus"/>
         </q-td>
       </template>
 
@@ -82,7 +83,18 @@
     <q-dialog v-model="dialogMessage">
       <q-card style="min-width: 700px" >
         <q-card-section>
-          <div class="text-h6">Сообщения</div>
+          <div class="row">
+            <div class="col-10">
+              <div class="text-h6">Сообщения</div>
+            </div>
+            <div class="col-1">
+
+            </div>
+            <div class="col-1">
+              <div style="cursor: pointer" class="text-h6" @click="closeComment">Х</div>
+            </div>
+          </div>
+
         </q-card-section>
 
         <q-card-section style="max-height: 60vh; background: wheat" class="scroll">
@@ -196,9 +208,14 @@ export default defineComponent({
       message.value = row
       api.post('loadComments',{on_the_side_id: row['id']}).then(respond => {
         messages.value = respond.data
-      })
 
-      dialogMessage.value = true
+        dialogMessage.value = true
+      })
+    }
+
+    function closeComment() {
+      dialogMessage.value = false
+      getAllDataReworker()
     }
 
     function saveNewMessage(newMessage) {
@@ -236,7 +253,7 @@ export default defineComponent({
 
     return {
       columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
-      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message
+      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment,
     }
   },
   watch: {
@@ -262,6 +279,9 @@ export default defineComponent({
 </script>
 
 <style lang="sass">
+.plusIcon
+  cursor: pointer
+
 .my-sticky-header-table
   /* height or max-height is important */
   height: calc(100vh - 170px)
