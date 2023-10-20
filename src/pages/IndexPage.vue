@@ -29,19 +29,67 @@
         </q-td>
       </template>
 
-      <template #body-cell-view_icon="props">
+      <template #body-cell-reworker_name="props">
         <q-td align="center">
-          <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>
-          <!--          нет сообщения-->
-          <q-icon class="plusIcon" v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-plus-outline"/>
-          <!--          есть сообщения-->
-          <q-icon class="plusIcon" v-if="commentStatus(props.row)===false" @click="openComment(props.row)" size="1.2rem" color="blue-6" name="mdi-comment-plus"/>
+          {{ props.row.reworker_name }}
+          <q-badge v-show="searchNewMessage(props.row)" transparent>есть новое <q-icon left color="white" size="1rem" name="mdi-email-outline"/></q-badge>
         </q-td>
+      </template>
+
+      <template #body-cell-view_icon="props">
+        <q-td class="view_icon_td" align="center">
+<!--          <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>-->
+
+          <!--          количество всех сообщений-->
+          <q-badge v-show="props.row.comments_on_the_side.length>0" transparent>всех
+            <q-icon left color="white" size="1rem" name="mdi-email-outline">
+
+            </q-icon>{{ props.row.comments_on_the_side.length }}
+          </q-badge>
+          <!--          нет сообщения-->
+          <q-icon left class="plusIcon" v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-outline">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Открыть сообщения</strong>
+            </q-tooltip>
+          </q-icon>
+
+          <!--          есть сообщения-->
+          <q-icon left class="plusIcon" v-if="commentStatus(props.row)===false" @click="openComment(props.row)" size="1.2rem" color="blue-6" name="mdi-comment-outline">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Открыть сообщения</strong>
+            </q-tooltip>
+          </q-icon>
+
+          <!--          взять в работу-->
+          <q-icon v-if="props.row.on_the_side===null" right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="blue-6">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Взять в работ</strong>
+            </q-tooltip>
+          </q-icon>
+          <q-icon v-else right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="green-6">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Отменить Взять в работу</strong>
+            </q-tooltip>
+          </q-icon>
+
+          <!--          готово-->
+          <q-icon v-if="props.row.done===null" right class="plusIcon" name="mdi-check-circle-outline" size="1.2rem" color="green-6">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Готово</strong>
+            </q-tooltip>
+          </q-icon>
+          <q-icon v-else right class="plusIcon" size="1.2rem" color="green" name="mdi-check-circle">
+            <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+              <strong>Отменить Готово</strong>
+            </q-tooltip>
+          </q-icon>
+        </q-td>
+
       </template>
 
       <template #body-cell-area_on_the_side="props">
         <q-td align="center">
-          <q-icon v-if="props.row.area_on_the_side" size="1.2rem" color="green" name="mdi-check-bold"/>
+          <q-icon v-if="props.row.area_on_the_side" size="1.2rem" color="green" name="mdi-check-bold"></q-icon>
         </q-td>
       </template>
 
@@ -143,6 +191,7 @@ import {QSpinnerClock, useQuasar} from "quasar";
 
 const columnsOnTheSide = [
   { name: 'view_icon', align: 'center', label: '', field: 'view_icon', sortable: true },
+  /*{ name: '', align: 'center', label: '', field: '', sortable: true },*/
   { name: 'reworker_name', align: 'center', label: 'Доработчик', field: 'reworker_name', sortable: true },
   { name: 'id', align: 'center', label: '№', field: 'id', sortable: true },
   { name: 'order_name', align: 'center', label: 'Приказ ГИРД', field: 'order_name', sortable: true },
@@ -177,6 +226,17 @@ export default defineComponent({
       /*backgroundColor: 'purple',*/
       message: 'Загрузка',
       messageColor: 'white'
+    }
+
+    function searchNewMessage(row) {
+      console.log(row)
+      let comments = row['comments_on_the_side']
+      let result = comments.filter(coment => coment['status']===0)
+      if (result.length>0) {
+        return true
+      } else  {
+        return false
+      }
     }
 
     function getAllDataReworker() {
@@ -253,7 +313,7 @@ export default defineComponent({
 
     return {
       columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
-      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment,
+      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment, searchNewMessage,
     }
   },
   watch: {
@@ -279,6 +339,8 @@ export default defineComponent({
 </script>
 
 <style lang="sass">
+.view_icon_td
+  width: 200px
 .plusIcon
   cursor: pointer
 
