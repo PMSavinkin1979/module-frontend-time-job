@@ -46,6 +46,7 @@
         </q-td>
       </template>
 
+<!--      иконки-->
       <template #body-cell-view_icon="props">
         <q-td class="view_icon_td" align="center">
 <!--          <q-icon v-if="props.row.done!==null" size="1.2rem" color="green" name="mdi-check-circle"/>-->
@@ -121,6 +122,13 @@
         </q-td>
       </template>
 
+      <template #body-cell-done_on_the_side="props">
+        <q-td align="center">
+          <span v-if="props.row.done_on_the_side!==null" style="color: blue">{{ props.row.done_on_the_side }}</span>
+          <span v-else style="cursor: pointer; color: red" @click="dialogSpecifyTheDate = true; modification = props.row">указать дату</span>
+        </q-td>
+      </template>
+
     </q-table>
 
 <!--    Диалоговое окно для просмотра большого текста-->
@@ -136,6 +144,28 @@
 
         <q-card-actions align="right">
           <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!--    Диалоговое окно для указания даты-->
+    <q-dialog v-model="dialogSpecifyTheDate">
+      <q-card>
+        <q-card-section>
+          <span style="color: blue; text-align: center">Дата готовности доработки - <b>{{ modification['order_name'] }}</b></span>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-date
+            v-model="date"
+            minimal
+            mask="YYYY-MM-DD"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="отмена" color="primary" v-close-popup />
+          <q-btn flat label="сохранить" color="primary" @click="saveSpecifyTheDate(modification,date)"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -210,7 +240,7 @@ const columnsOnTheSide = [
   { name: 'order_name', align: 'center', label: 'Приказ ГИРД', field: 'order_name', sortable: true },
   { name: 'date_otk', align: 'center', label: 'Дата сдачи ГИРД', field: 'date_otk', sortable: true },
   { name: 'on_the_side', align: 'center', label: 'В работе доработчика с', field: 'on_the_side', sortable: true },
-  { name: 'done_on_the_side', align: 'center', label: 'Готовность доработки', field: 'done_on_the_side', sortable: true },
+  { name: 'done_on_the_side', align: 'center', label: 'Дата готов-ти дораб-ки', field: 'done_on_the_side', sortable: true },
   { name: 'area_gird', align: 'center', label: 'Площадка ГИРД', field: 'area_gird', sortable: true },
   { name: 'area_on_the_side', align: 'center', label: 'Площадка доработчика', field: 'area_on_the_side', sortable: true },
   { name: 'note', align: 'center', label: 'Примечание', field: 'note', sortable: true },
@@ -227,12 +257,15 @@ export default defineComponent({
     let uploadStatusLabel = ref('только заявки в работе')
     let dialogViewText = ref(false)
     let dialogMessage = ref(false)
+    let dialogSpecifyTheDate = ref(false)
     let viewTextInDialog = ref('')
     const $q = useQuasar()
     let newMessage = ref('')
     let messages = ref([])
     let message = ref([])
     let filter = ref('')
+    let date = ref(Date.now())
+    let modification = ref([])
 
     let options = {
       spinner: QSpinnerClock,
@@ -241,6 +274,14 @@ export default defineComponent({
       /*backgroundColor: 'purple',*/
       message: 'Загрузка',
       messageColor: 'white'
+    }
+
+    function saveSpecifyTheDate(row, date) {
+      //console.log(row,date)
+      api.post('saveSpecifyTheDate', {on_the_side_id: row.id, monitor_id: row.monitor_id, date: date, who: who.value}).then(respond => {
+        dialogSpecifyTheDate.value = false
+        getAllDataReworker()
+      })
     }
 
     function searchNewMessage(row) {
@@ -328,22 +369,22 @@ export default defineComponent({
 
     function atWork(boolean, row) {
       //console.log(boolean, row)
-      api.post('atWork',{on_The_Side_id: row.id, monitor_id: row.monitor_id, at_work: boolean}).then(respond => {
+      api.post('atWork',{on_The_Side_id: row.id, monitor_id: row.monitor_id, at_work: boolean, who: who.value}).then(respond => {
         getAllDataReworker()
       })
     }
 
     function done(boolean, row) {
       //console.log(boolean, row)
-      api.post('done',{on_The_Side_id: row.id, monitor_id: row.monitor_id, done: boolean}).then(respond => {
+      api.post('done',{on_The_Side_id: row.id, monitor_id: row.monitor_id, done: boolean, who: who.value}).then(respond => {
         getAllDataReworker()
       })
     }
 
     return {
       columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
-      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment, searchNewMessage, filter, atWork, done,
-
+      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment, searchNewMessage, filter, atWork, done, dialogSpecifyTheDate,
+      saveSpecifyTheDate, date, modification,
     }
   },
   watch: {
