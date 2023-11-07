@@ -4,11 +4,11 @@
     <div class="col-2">
       <q-toggle v-model="viewTable" :label="uploadStatusLabel" color="green"/>
     </div>
-    <div class="col-2">
+<!--    <div class="col-2">
       <q-btn disable color="green-10" dense outline size="0.8rem">
         <a style="font-size: x-small" :href="printOnTheSide()" target="_blank">Выгрузить в Excel</a>
       </q-btn>
-    </div>
+    </div>-->
   </div>
 
   <div class="q-pa-md">
@@ -22,7 +22,17 @@
       row-key="id"
       hide-pagination
       :rows-per-page-options="[0]"
+      :filter="filter"
     >
+<!--      поиск-->
+      <template v-slot:top-right>
+        <q-input outlined dense debounce="300" v-model="filter" label="Поиск">
+          <template v-slot:append>
+            <q-icon name="mdi-magnify" />
+          </template>
+        </q-input>
+      </template>
+
       <template #body-cell-area_gird="props">
         <q-td align="center">
           <q-icon v-if="props.row.area_gird" size="1.2rem" color="green" name="mdi-check-bold"/>
@@ -61,24 +71,26 @@
           </q-icon>
 
           <!--          взять в работу-->
-          <q-icon v-if="props.row.on_the_side===null" right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="blue-6">
+          <q-icon v-if="props.row.on_the_side===null" right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="green-6" @click="atWork(true, props.row)">
             <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              <strong>Взять в работ</strong>
+              <strong>Взять в работу</strong><br>
+              <strong>c текущего дня</strong>
             </q-tooltip>
           </q-icon>
-          <q-icon v-else right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="green-6">
+          <q-icon v-else right class="plusIcon" name="mdi-car-wrench" size="1.2rem" color="blue-6" @click="atWork(false,props.row)">
             <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              <strong>Отменить Взять в работу</strong>
+              <strong>Отменить Взять в работу</strong><br>
+              <strong>в работе с {{ props.row.on_the_side }}</strong>
             </q-tooltip>
           </q-icon>
 
           <!--          готово-->
-          <q-icon v-if="props.row.done===null" right class="plusIcon" name="mdi-check-circle-outline" size="1.2rem" color="green-6">
+          <q-icon v-if="props.row.done===null" right class="plusIcon" name="mdi-check-circle-outline" size="1.2rem" color="green-6" @click="done(true,props.row)">
             <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
               <strong>Готово</strong>
             </q-tooltip>
           </q-icon>
-          <q-icon v-else right class="plusIcon" size="1.2rem" color="green" name="mdi-check-circle">
+          <q-icon v-else right class="plusIcon" size="1.2rem" color="green" name="mdi-check-circle" @click="done(false,props.row)">
             <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
               <strong>Отменить Готово</strong>
             </q-tooltip>
@@ -103,7 +115,8 @@
 
       <template #body-cell-type_work="props">
         <q-td align="center">
-          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.type_work) && props.row.type_work!==null" @click="viewText(props.row.type_work)">{{ props.row.type_work.substring(0,10) }}...</span>
+          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.type_work) && props.row.type_work!==null" @click="viewText(props.row.type_work)">
+            {{ props.row.type_work.substring(0,10) }}...</span>
           <span v-else>{{ props.row.type_work }}</span>
         </q-td>
       </template>
@@ -204,6 +217,7 @@ const columnsOnTheSide = [
   { name: 'type_work', align: 'center', label: 'Тип работ', field: 'type_work', sortable: true },
 ]
 
+
 export default defineComponent({
   name: 'IndexPage',
   setup() {
@@ -218,6 +232,7 @@ export default defineComponent({
     let newMessage = ref('')
     let messages = ref([])
     let message = ref([])
+    let filter = ref('')
 
     let options = {
       spinner: QSpinnerClock,
@@ -229,7 +244,7 @@ export default defineComponent({
     }
 
     function searchNewMessage(row) {
-      console.log(row)
+      //console.log(row)
       let comments = row['comments_on_the_side']
       let result = comments.filter(coment => coment['status']===0)
       if (result.length>0) {
@@ -311,9 +326,24 @@ export default defineComponent({
       }
     }
 
+    function atWork(boolean, row) {
+      //console.log(boolean, row)
+      api.post('atWork',{on_The_Side_id: row.id, monitor_id: row.monitor_id, at_work: boolean}).then(respond => {
+        getAllDataReworker()
+      })
+    }
+
+    function done(boolean, row) {
+      //console.log(boolean, row)
+      api.post('done',{on_The_Side_id: row.id, monitor_id: row.monitor_id, done: boolean}).then(respond => {
+        getAllDataReworker()
+      })
+    }
+
     return {
       columnsOnTheSide, rows, getAllDataReworker, who, viewTable, uploadStatusLabel, checkText, viewText, dialogViewText, viewTextInDialog, printOnTheSide, openComment,
-      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment, searchNewMessage,
+      commentStatus, dialogMessage, newMessage, messages, timeMessage, saveNewMessage, message, closeComment, searchNewMessage, filter, atWork, done,
+
     }
   },
   watch: {
