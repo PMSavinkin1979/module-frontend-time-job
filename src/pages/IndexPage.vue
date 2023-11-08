@@ -33,6 +33,10 @@
         </q-input>
       </template>
 
+<!--      <template v-slot:top-left="props">
+        <span>{{ props.row.reworker_name }}</span>
+      </template>-->
+
       <template #body-cell-area_gird="props">
         <q-td align="center">
           <q-icon v-if="props.row.area_gird" size="1.2rem" color="green" name="mdi-check-bold"/>
@@ -41,7 +45,7 @@
 
       <template #body-cell-reworker_name="props">
         <q-td align="center">
-          {{ props.row.reworker_name }}
+          {{ props.row.reworker_name.substring(0,20) }}...
           <q-badge v-show="searchNewMessage(props.row)" transparent>есть новое <q-icon left color="white" size="1rem" name="mdi-email-outline"/></q-badge>
         </q-td>
       </template>
@@ -60,7 +64,7 @@
           <!--          нет сообщения-->
           <q-icon left class="plusIcon" v-if="commentStatus(props.row)===true" @click="openComment(props.row)" size="1.2rem" color="lime-6" name="mdi-comment-outline">
             <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
-              <strong>Открыть сообщения</strong>
+              <strong>Открыть сообщения или добавить сообщение</strong>
             </q-tooltip>
           </q-icon>
 
@@ -109,7 +113,8 @@
       <template #body-cell-note="props">
         <q-td align="center">
 <!--          <span>{{ props.row.note.substring(0,10) }}...</span>-->
-          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.note) && props.row.note!==null" @click="viewText(props.row.note)">{{ props.row.note.substring(0,10) }}...</span>
+          <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.note) && props.row.note!==null" @click="viewText(props.row.note)">
+            {{ props.row.note.substring(0,10) }}...</span>
           <span v-else>{{ props.row.note }}</span>
         </q-td>
       </template>
@@ -117,7 +122,7 @@
       <template #body-cell-type_work="props">
         <q-td align="center">
           <span style="color: blue; cursor: pointer;" v-if="checkText(props.row.type_work) && props.row.type_work!==null" @click="viewText(props.row.type_work)">
-            {{ props.row.type_work.substring(0,10) }}...</span>
+            {{ props.row.type_work.substring(0,30) }}...</span>
           <span v-else>{{ props.row.type_work }}</span>
         </q-td>
       </template>
@@ -238,13 +243,13 @@ const columnsOnTheSide = [
   { name: 'reworker_name', align: 'center', label: 'Доработчик', field: 'reworker_name', sortable: true },
   { name: 'id', align: 'center', label: '№', field: 'id', sortable: true },
   { name: 'order_name', align: 'center', label: 'Приказ ГИРД', field: 'order_name', sortable: true },
-  { name: 'date_otk', align: 'center', label: 'Дата сдачи ГИРД', field: 'date_otk', sortable: true },
+  { name: 'date_otk', align: 'center', label: 'Дата сдачи ГИРД заказчику', field: 'date_otk', sortable: true },
   { name: 'on_the_side', align: 'center', label: 'В работе доработчика с', field: 'on_the_side', sortable: true },
   { name: 'done_on_the_side', align: 'center', label: 'Дата готов-ти дораб-ки', field: 'done_on_the_side', sortable: true },
   { name: 'area_gird', align: 'center', label: 'Площадка ГИРД', field: 'area_gird', sortable: true },
   { name: 'area_on_the_side', align: 'center', label: 'Площадка доработчика', field: 'area_on_the_side', sortable: true },
-  { name: 'note', align: 'center', label: 'Примечание', field: 'note', sortable: true },
   { name: 'type_work', align: 'center', label: 'Тип работ', field: 'type_work', sortable: true },
+  { name: 'note', align: 'center', label: 'Примечание', field: 'note', sortable: true },
 ]
 
 
@@ -369,14 +374,14 @@ export default defineComponent({
 
     function atWork(boolean, row) {
       //console.log(boolean, row)
-      api.post('atWork',{on_The_Side_id: row.id, monitor_id: row.monitor_id, at_work: boolean, who: who.value}).then(respond => {
+      api.post('atWork',{on_The_Side_id: row.id, monitor_id: row.monitor_id, at_work: boolean, who: who.value, order: row}).then(respond => {
         getAllDataReworker()
       })
     }
 
     function done(boolean, row) {
       //console.log(boolean, row)
-      api.post('done',{on_The_Side_id: row.id, monitor_id: row.monitor_id, done: boolean, who: who.value}).then(respond => {
+      api.post('done',{on_The_Side_id: row.id, monitor_id: row.monitor_id, done: boolean, who: who.value, order: row}).then(respond => {
         getAllDataReworker()
       })
     }
@@ -410,6 +415,7 @@ export default defineComponent({
 </script>
 
 <style lang="sass">
+
 .view_icon_td
   width: 200px
 .plusIcon
